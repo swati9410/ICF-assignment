@@ -15,7 +15,8 @@ export default class App extends Component {
     super(props);
     this.state = {
       flightDetail: [],
-      sortDirection: "asc"
+      sortDirection: "asc",
+      departureTimeArray: []
     };
   }
   componentDidMount(){
@@ -25,6 +26,17 @@ export default class App extends Component {
         flightDetail: flightPath
       })
     }
+
+    // debugger;
+    
+    flightPath.map((value,key) => {
+      let deptDate = new Date(value.standardTimeOfDeparture);
+      let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      this.setState({
+        departureTimeArray: deptDateValue
+      })
+      return([])
+    })
   }
   onSort(event, sortKey, direction) {
     const { flightDetail, sortDirection } = this.state
@@ -41,11 +53,33 @@ export default class App extends Component {
       sortDirection: direction
     })
   } 
-
+  
+  
+  // filterItems(arr, query) {
+  //   return this.state.flightDetail.filter(function(el) {
+  //     var deptDate = new Date(el.standardTimeOfDeparture);
+  //     var deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  //     console.log(deptDateValue);
+  //   })
+  // }
+  // var newArray = [];
+  // flightDetail.map((value,key) => {
+  //   var deptDate = new Date(value.standardTimeOfDeparture);
+  //   var deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  //   newArray.push(deptDateValue)
+  // })
+  // var filterData = newArray.filter(onFilter("00:00","06:00"));
+  // console.log(filterData);
+  // function isBigEnough(value) {
+  //   return value >= 10;
+  // }
+  
+  // var filtered = [12, 5, 8, 130, 44].filter(isBigEnough);
  
   render(){
   const { flightDetail, sortDirection } = this.state;
   console.log('Flight Detail', flightDetail);
+
   let getCompleteFlightDetail = [];
   if(flightDetail.length !== 0) {
     getCompleteFlightDetail = 
@@ -66,6 +100,10 @@ export default class App extends Component {
       )})
     
   }
+
+  
+
+  
   return (
     <div className="App">
       <div className="travelPlace">
@@ -85,7 +123,13 @@ export default class App extends Component {
           }
         </span>
       </div>
-      <Button variant="primary">Filter</Button>
+      <div className="">
+        <Button variant="primary" onClick={() => this.filterItems("00:00", "06:00")}>00-06</Button>
+        <Button variant="primary" onClick={() => this.filterItems("06:00", "12:00")}>06-12</Button>
+        <Button variant="primary" onClick={() => this.filterItems("12:00", "18:00")}>12-18</Button>
+        <Button variant="primary" onClick={() => this.filterItems("18:00", "00:00")}>18-00</Button>
+      </div>
+
       <Button variant="primary" onClick={e => this.onSort(e, 'travelTime', sortDirection)}>Sort by Duration</Button>
         <CommonTable 
           flightdetail = {flightDetail} 
