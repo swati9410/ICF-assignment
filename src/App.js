@@ -4,6 +4,7 @@ import Data from './data.json';
 import CommonTable from './components/commonTable';
 
 import './App.scss';
+const THEAD_LIST=['Flight No.','Departure Time','Arrival Time','Duration'];
 
 
 
@@ -14,10 +15,7 @@ export default class App extends Component {
     super(props);
     this.state = {
       flightDetail: [],
-      sort: {
-        column: null,
-        direction: 'desc',
-       }
+      sortDirection: "asc"
     };
   }
   componentDidMount(){
@@ -28,44 +26,49 @@ export default class App extends Component {
       })
     }
   }
-
-  onSort = (column) => {
-
-    return e => {
-        const direction = this.state.sort.column ? (this.state.sort.direction === 'asc' ? 'desc' : 'asc') : 'desc'
-        const sortedUsers = this.state.flightDetail.sort((a, b) => {
-            if (column === 'Flight No.') {
-                const nameA = a.flightNumber.toUpperCase() // ignore upper and lowercase
-                const nameB = b.flightNumber.toUpperCase() // ignore upper and lowercase
-    
-                if (nameA < nameB)
-                    return -1
-                if (nameA > nameB)
-                    return 1
-                else return 0
-            }
-            else {
-                return a.flightNumber - b.flightNumber
-            }
-        })
-    
-        if (direction === 'desc') {
-            sortedUsers.reverse()
-        }
-    
-        this.setState({
-          flightNumber: sortedUsers,
-            sort: {
-                column,
-                direction,
-            },
-        })
+  onSort(event, sortKey) {
+    const flightDetail = this.state.flightDetail;
+    const sortDirection = this.state.sortDirection
+    if(sortDirection == "asc"){
+      flightDetail.sort((a,b) => a[sortKey].localeCompare(b[sortKey]))
+      this.setState({
+        flightDetail,
+        sortDirection: "desc"
+      })
     }
+    else{
+      flightDetail.sort((a,b) => b[sortKey].localeCompare(a[sortKey]))
+      this.setState({
+        flightDetail,
+        sortDirection: "asc"
+      })
     }
+  } 
 
+ 
   render(){
   const { flightDetail, column, direction } = this.state;
   console.log('Flight Detail', flightDetail);
+  let getCompleteFlightDetail = [];
+  if(flightDetail.length !== 0) {
+    getCompleteFlightDetail = 
+      flightDetail.map((value,key) => {
+      let deptDate = new Date(value.standardTimeOfDeparture);
+      let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      let arvlDate = new Date(value.standardTimeOfArrival);
+      let arvlDateValue = arvlDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      let travelTime = new Date("Jan 01, 1983 "+value.travelTime);
+      let travelTimeValue = travelTime.getHours()+"h "+travelTime.getMinutes()+"m";
+      return(
+        <tr key={key}>
+          <td>{value.flightNumber}</td>
+          <td>{deptDateValue}</td>
+          <td>{arvlDateValue}</td>
+          <td>{travelTimeValue}</td>
+        </tr>
+      )})
+    
+  }
   return (
     <div className="App">
       <div className="travelPlace">
@@ -86,14 +89,14 @@ export default class App extends Component {
         </span>
       </div>
       <Button variant="primary">Filter</Button>
- 
-       <button onClick={this.sortAscending}>asc</button>
-         <button onClick={this.sortDescending}>desc</button>
+      <Button variant="primary" onClick={e => this.onSort(e, 'travelTime')}>Sort by Duration</Button>
         <CommonTable 
           flightdetail = {flightDetail} 
+          tHeadList={THEAD_LIST}
+          tBodyList={getCompleteFlightDetail}
           column={column} 
           direction={direction}
-          onSort={this.onSort}
+          sortTable={this.sortTable}
         />
       </div>
     );
