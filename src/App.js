@@ -15,6 +15,7 @@ export default class App extends Component {
     };
   }
   componentWillMount(){
+    console.log("Hello");	
     var flightPath = Data.indiGoAvailability.trips[0].flightDates[0].flights;
     if(flightPath){
       this.setState({
