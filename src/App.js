@@ -26,28 +26,25 @@ export default class App extends Component {
       })
     }
   }
-  onSort(event, sortKey) {
-    const flightDetail = this.state.flightDetail;
-    const sortDirection = this.state.sortDirection
-    if(sortDirection == "asc"){
-      flightDetail.sort((a,b) => a[sortKey].localeCompare(b[sortKey]))
-      this.setState({
-        flightDetail,
-        sortDirection: "desc"
-      })
+  onSort(event, sortKey, direction) {
+    const { flightDetail, sortDirection } = this.state
+    let flightDetailCopy;
+    direction = sortDirection === 'asc' ? 'desc' : 'asc'
+    if(sortDirection === "asc"){
+      flightDetailCopy = flightDetail.sort((a,b) => a[sortKey].localeCompare(b[sortKey]))
     }
     else{
-      flightDetail.sort((a,b) => b[sortKey].localeCompare(a[sortKey]))
-      this.setState({
-        flightDetail,
-        sortDirection: "asc"
-      })
+      flightDetailCopy = flightDetail.sort((a,b) => b[sortKey].localeCompare(a[sortKey]))
     }
+    this.setState({
+      flightDetail: flightDetailCopy,
+      sortDirection: direction
+    })
   } 
 
  
   render(){
-  const { flightDetail, column, direction } = this.state;
+  const { flightDetail, sortDirection } = this.state;
   console.log('Flight Detail', flightDetail);
   let getCompleteFlightDetail = [];
   if(flightDetail.length !== 0) {
@@ -89,13 +86,11 @@ export default class App extends Component {
         </span>
       </div>
       <Button variant="primary">Filter</Button>
-      <Button variant="primary" onClick={e => this.onSort(e, 'travelTime')}>Sort by Duration</Button>
+      <Button variant="primary" onClick={e => this.onSort(e, 'travelTime', sortDirection)}>Sort by Duration</Button>
         <CommonTable 
           flightdetail = {flightDetail} 
           tHeadList={THEAD_LIST}
           tBodyList={getCompleteFlightDetail}
-          column={column} 
-          direction={direction}
           sortTable={this.sortTable}
         />
       </div>
