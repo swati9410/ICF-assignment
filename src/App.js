@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
-import { Table, Button } from 'react-bootstrap';
+import {  Button } from 'react-bootstrap';
 import Data from './data.json';
+import CommonTable from './components/commonTable';
+
 import './App.scss';
 
 
@@ -12,37 +14,64 @@ export default class App extends Component {
     super(props);
     this.state = {
       flightDetail: [],
+      sort: {
+        column: null,
+        direction: 'desc',
+       }
     };
   }
-  componentWillMount(){
-    console.log("Hello");	
+  componentDidMount(){
     var flightPath = Data.indiGoAvailability.trips[0].flightDates[0].flights;
     if(flightPath){
       this.setState({
         flightDetail: flightPath
       })
     }
-    else{
-      this.setState({
-        flightDetail: []
-      })
-    }
   }
-   addZero(i) {
-    if (i < 10) {
-      i = "0" + i;
+
+  onSort = (column) => {
+
+    return e => {
+        const direction = this.state.sort.column ? (this.state.sort.direction === 'asc' ? 'desc' : 'asc') : 'desc'
+        const sortedUsers = this.state.flightDetail.sort((a, b) => {
+            if (column === 'Flight No.') {
+                const nameA = a.flightNumber.toUpperCase() // ignore upper and lowercase
+                const nameB = b.flightNumber.toUpperCase() // ignore upper and lowercase
+    
+                if (nameA < nameB)
+                    return -1
+                if (nameA > nameB)
+                    return 1
+                else return 0
+            }
+            else {
+                return a.flightNumber - b.flightNumber
+            }
+        })
+    
+        if (direction === 'desc') {
+            sortedUsers.reverse()
+        }
+    
+        this.setState({
+          flightNumber: sortedUsers,
+            sort: {
+                column,
+                direction,
+            },
+        })
     }
-    return i;
-  }
+    }
+
   render(){
-  const {flightDetail} = this.state;
+  const { flightDetail, column, direction } = this.state;
   console.log('Flight Detail', flightDetail);
   return (
     <div className="App">
       <div className="travelPlace">
         <span>
           {
-            Object.keys(flightDetail).length !== 0 ?
+            flightDetail.length !== 0 ?
             (flightDetail[0].origin):
             ("No Data Found")
           }
@@ -50,50 +79,23 @@ export default class App extends Component {
         <i className="fa fa-arrow-right" aria-hidden="true"></i>
         <span>
           {
-            Object.keys(flightDetail).length !== 0 ?
+            flightDetail.length !== 0 ?
             (flightDetail[0].destination):
             ("No Data Found")
           }
         </span>
       </div>
       <Button variant="primary">Filter</Button>
-      <Button variant="primary">Sort</Button>
-      <Table responsive>
-        <thead>
-            <tr>
-              <th>Flight No.</th>
-              <th>Departure Time</th>
-              <th>Arrival Time</th>
-              <th>Duration</th>
-            </tr>
-        </thead>
-        <tbody>
-          {
-            Object.keys(flightDetail).length !== 0 ?
-              (flightDetail.map((value,key) => {
-              let deptDate = new Date(value.standardTimeOfDeparture);
-              let arvlDate = new Date(value.standardTimeOfArrival);
-              let travelTime = new Date("Jan 01, 1983 "+value.travelTime);
-              return(
-                <tr key={key}>
-                  <td>{value.flightNumber}</td>
-                  <td>{this.addZero(deptDate.getHours())}:{this.addZero(deptDate.getMinutes())}</td>
-                  <td>{this.addZero(arvlDate.getHours())}:{this.addZero(arvlDate.getMinutes())}</td>
-                  <td>{this.addZero(travelTime.getHours())+"h "+this.addZero(travelTime.getMinutes())+"m"}</td>
-                </tr>
-              )})) :
-              (<tr>
-                <td>No Data Found</td>
-                <td>No Data Found</td>
-                <td>No Data Found</td>
-                <td>No Data Found</td>
-              </tr>)
-          }
-      
-            
-        </tbody>
-      </Table>
-    </div>
+ 
+       <button onClick={this.sortAscending}>asc</button>
+         <button onClick={this.sortDescending}>desc</button>
+        <CommonTable 
+          flightdetail = {flightDetail} 
+          column={column} 
+          direction={direction}
+          onSort={this.onSort}
+        />
+      </div>
     );
   }
 }
