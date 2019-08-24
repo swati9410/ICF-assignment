@@ -1,121 +1,116 @@
 import React,{Component} from 'react';
-import {  Button } from 'react-bootstrap';
-import Data from './data.json';
-import CommonTable from './components/commonTable';
+// import {  Button } from 'react-bootstrap';
 import './App.scss';
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      allFlightData: [],
-      flightDetail: [],
-      sortDirection: "asc",
-      departureTimeArray: [],
-      deptMinTime: "",
-      deptMaxTime: ""    
+      studentData: [],
+      filterData: [],
+      showDetail: false,
+      studentName: ""
     };
   }
   componentDidMount(){
-    var flightPath = Data.indiGoAvailability.trips[0].flightDates[0].flights;
-    if(flightPath){
-      this.setState({
-        allFlightData: flightPath,
-        flightDetail: flightPath,
-      })
-    }
-  }
-  onSort(event, sortKey, direction) {
-    const { flightDetail, sortDirection } = this.state
-    let flightDetailCopy;
-    direction = sortDirection === 'asc' ? 'desc' : 'asc'
-    if(sortDirection === "asc"){
-      flightDetailCopy = flightDetail.sort((a,b) => a[sortKey].localeCompare(b[sortKey]))
-    }
-    else{
-      flightDetailCopy = flightDetail.sort((a,b) => b[sortKey].localeCompare(a[sortKey]))
-    }
-    this.setState({
-      flightDetail: flightDetailCopy,
-      sortDirection: direction
-    })
-  } 
-  filterItems(minTime,maxTime){
-    let departureArr = [];
-    this.state.allFlightData.map((value,key) => {
-      let deptDate = new Date(value.standardTimeOfDeparture);
-      let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      if(this.isBigEnough(deptDateValue, minTime, maxTime)){
-        departureArr.push(this.state.allFlightData[key]);
-      }
-      return ({})
-    })
-    this.setState({
-      flightDetail: departureArr
-    })
+    fetch("https://student-management-api-1u3cd4j7s.now.sh/students")
+      .then(res => res.json())
+      .then(
+        (result) => {
+          let sortedvalues = result.sort((a,b) => a["class"] - b["class"]);
+            this.setState({
+              studentData: sortedvalues
+            })
+            console.log("after sorting",this.state.studentData)
+            const {studentData, filterData} = this.state;
+            studentData.map(function(item) {
+              var itemClass = item["class"];  
+              if (itemClass in filterData) {
+                console.log("itemClass",itemClass);
+                // console.log("section",filterData[itemSection].section)
+                filterData[itemClass].duplicate = true;
+                item.duplicate = true;
+
+              }
+              else {
+                filterData[itemClass] = item;
+              }
+              return ({})
+            });
+            this.setState({
+              filterData: filterData
+            })
+            console.log("after filtering",filterData);            
+        },
+        (error) => {
+          console.log("error",error);
+        }
+      )
   }
 
-  isBigEnough(value, minTime, maxTime) {
-    return value >= minTime && value < maxTime;
+  getDetails(studentName){
+    console.log(studentName);
+    this.setState({
+      showDetail: !this.state.showDetail,
+      studentName: studentName
+    })
+    
   }
   
   render(){
-  const { flightDetail, sortDirection, allFlightData} = this.state;
-  console.log('Flight Detail', allFlightData);
-  const THEAD_LIST=['Flight No.','Departure Time','Arrival Time','Duration'];
-  let getCompleteFlightDetail = [];
-  if(flightDetail.length !== 0) {
-    getCompleteFlightDetail = 
-    flightDetail.map((value,key) => {
-      let deptDate = new Date(value.standardTimeOfDeparture);
-      let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      let arvlDate = new Date(value.standardTimeOfArrival);
-      let arvlDateValue = arvlDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      let travelTime = new Date("Jan 01, 1983 "+value.travelTime);
-      let travelTimeValue = travelTime.getHours()+"h "+travelTime.getMinutes()+"m";
-      return(
-        <tr key={key}>
-          <td>{value.flightNumber}</td>
-          <td>{deptDateValue}</td>
-          <td>{arvlDateValue}</td>
-          <td>{travelTimeValue}</td>
-        </tr>
-      )})
-    
-  }
+  const { filterData, studentName, studentData} = this.state;
+  var result = studentData.filter(obj => {
+    return obj.rollNumber === studentName
+  })
+  console.log(result)
 
   return (
-    <div className="App">
-      <div className="travelPlace">
-        <span>
+      <div className="App">
+        <ul>
           {
-            allFlightData.length !== 0 ?
-            (allFlightData[0].origin):
-            ("No Data Found")
+            filterData.map((value,key) => {
+              return(
+                <li key={key}>
+                  Class {value.class}
+                  <ul>
+                    <li>
+                      {value.section}
+                      <button onClick={() => this.getDetails(value.rollNumber)}>
+                        {value.name}
+                      </button>
+                    </li>
+                  </ul>
+                </li>
+              )
+            })
           }
-        </span>
-        <i className="fa fa-arrow-right" aria-hidden="true"></i>
-        <span>
-          {
-            allFlightData.length !== 0 ?
-            (allFlightData[0].destination):
-            ("No Data Found")
+        </ul>
+        {
+          result.map((data,key) => {
+            return(
+                <aside key={key}>
+                  <p>
+                    Name
+                    <span>{data.name}</span>
+                  </p>
+                  <p>
+                    Age
+                    <span>{data.age}</span>
+                  </p>
+                  <p>
+                    Gender
+                    <span>{data.gender}</span>
+                  </p>
+                  <p>
+                    Sports
+                    <span>
+                      {data.sports + ","}
+                    </span>
+                  </p>
+                </aside>
+          )
+            })
           }
-        </span>
-      </div>
-      <div className="">
-        <Button variant="primary" onClick={() => this.filterItems("00:00", "06:00")}>00-06</Button>
-        <Button variant="primary" onClick={() => this.filterItems("06:00", "12:00")}>06-12</Button>
-        <Button variant="primary" onClick={() => this.filterItems("12:00", "18:00")}>12-18</Button>
-        <Button variant="primary" onClick={() => this.filterItems("18:00", "24:00")}>18-00</Button>
-      </div>
-        
-      <Button variant="primary" onClick={e => this.onSort(e, 'travelTime', sortDirection)}>Sort by Duration</Button>
-        <CommonTable 
-          tHeadList={THEAD_LIST}
-          tBodyList={getCompleteFlightDetail}
-          sortTable={this.sortTable}
-        />
       </div>
     );
   }
