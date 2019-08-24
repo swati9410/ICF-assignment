@@ -2,41 +2,28 @@ import React,{Component} from 'react';
 import {  Button } from 'react-bootstrap';
 import Data from './data.json';
 import CommonTable from './components/commonTable';
-
 import './App.scss';
-const THEAD_LIST=['Flight No.','Departure Time','Arrival Time','Duration'];
-
-
-
-
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      allFlightData: [],
       flightDetail: [],
       sortDirection: "asc",
-      departureTimeArray: []
+      departureTimeArray: [],
+      deptMinTime: "",
+      deptMaxTime: ""    
     };
   }
   componentDidMount(){
     var flightPath = Data.indiGoAvailability.trips[0].flightDates[0].flights;
     if(flightPath){
       this.setState({
-        flightDetail: flightPath
+        allFlightData: flightPath,
+        flightDetail: flightPath,
       })
     }
-
-    // debugger;
-    
-    flightPath.map((value,key) => {
-      let deptDate = new Date(value.standardTimeOfDeparture);
-      let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      this.setState({
-        departureTimeArray: deptDateValue
-      })
-      return([])
-    })
   }
   onSort(event, sortKey, direction) {
     const { flightDetail, sortDirection } = this.state
@@ -53,37 +40,33 @@ export default class App extends Component {
       sortDirection: direction
     })
   } 
-  
-  
-  // filterItems(arr, query) {
-  //   return this.state.flightDetail.filter(function(el) {
-  //     var deptDate = new Date(el.standardTimeOfDeparture);
-  //     var deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  //     console.log(deptDateValue);
-  //   })
-  // }
-  // var newArray = [];
-  // flightDetail.map((value,key) => {
-  //   var deptDate = new Date(value.standardTimeOfDeparture);
-  //   var deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  //   newArray.push(deptDateValue)
-  // })
-  // var filterData = newArray.filter(onFilter("00:00","06:00"));
-  // console.log(filterData);
-  // function isBigEnough(value) {
-  //   return value >= 10;
-  // }
-  
-  // var filtered = [12, 5, 8, 130, 44].filter(isBigEnough);
- 
-  render(){
-  const { flightDetail, sortDirection } = this.state;
-  console.log('Flight Detail', flightDetail);
+  filterItems(minTime,maxTime){
+    let departureArr = [];
+    this.state.allFlightData.map((value,key) => {
+      let deptDate = new Date(value.standardTimeOfDeparture);
+      let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      if(this.isBigEnough(deptDateValue, minTime, maxTime)){
+        departureArr.push(this.state.allFlightData[key]);
+      }
+      return ({})
+    })
+    this.setState({
+      flightDetail: departureArr
+    })
+  }
 
+  isBigEnough(value, minTime, maxTime) {
+    return value >= minTime && value < maxTime;
+  }
+  
+  render(){
+  const { flightDetail, sortDirection, allFlightData} = this.state;
+  console.log('Flight Detail', allFlightData);
+  const THEAD_LIST=['Flight No.','Departure Time','Arrival Time','Duration'];
   let getCompleteFlightDetail = [];
   if(flightDetail.length !== 0) {
     getCompleteFlightDetail = 
-      flightDetail.map((value,key) => {
+    flightDetail.map((value,key) => {
       let deptDate = new Date(value.standardTimeOfDeparture);
       let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       let arvlDate = new Date(value.standardTimeOfArrival);
@@ -101,24 +84,21 @@ export default class App extends Component {
     
   }
 
-  
-
-  
   return (
     <div className="App">
       <div className="travelPlace">
         <span>
           {
-            flightDetail.length !== 0 ?
-            (flightDetail[0].origin):
+            allFlightData.length !== 0 ?
+            (allFlightData[0].origin):
             ("No Data Found")
           }
         </span>
         <i className="fa fa-arrow-right" aria-hidden="true"></i>
         <span>
           {
-            flightDetail.length !== 0 ?
-            (flightDetail[0].destination):
+            allFlightData.length !== 0 ?
+            (allFlightData[0].destination):
             ("No Data Found")
           }
         </span>
@@ -127,12 +107,11 @@ export default class App extends Component {
         <Button variant="primary" onClick={() => this.filterItems("00:00", "06:00")}>00-06</Button>
         <Button variant="primary" onClick={() => this.filterItems("06:00", "12:00")}>06-12</Button>
         <Button variant="primary" onClick={() => this.filterItems("12:00", "18:00")}>12-18</Button>
-        <Button variant="primary" onClick={() => this.filterItems("18:00", "00:00")}>18-00</Button>
+        <Button variant="primary" onClick={() => this.filterItems("18:00", "24:00")}>18-00</Button>
       </div>
-
+        
       <Button variant="primary" onClick={e => this.onSort(e, 'travelTime', sortDirection)}>Sort by Duration</Button>
         <CommonTable 
-          flightdetail = {flightDetail} 
           tHeadList={THEAD_LIST}
           tBodyList={getCompleteFlightDetail}
           sortTable={this.sortTable}
