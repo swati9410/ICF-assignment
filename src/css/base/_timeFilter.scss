@@ -1,0 +1,46 @@
+
+.time-filter{
+    display: inline-flex;
+    font-size: 0.75rem;
+    color: #666;
+    border: solid 1px $color-light-grey;
+    border-radius: 4px;
+    background: $color-white;
+    .departureBy{
+        @include paddingController(6px, 6px, 6px, 6px);
+        background-color: $color-light-grey;
+        border-color: $color-light-grey;
+        color: $color-dark-grey;
+        border-width: 0 1px 0px 0px;
+        border-radius: 0px;
+        font-size: 1rem;
+    }
+    button{
+        height: 100%;
+        @include paddingController(6px, 6px, 6px, 6px);
+        background-color: $color-transparent;
+        border-color: $color-light-grey;
+        color: $color-dark-grey;
+        border-width: 0 1px 0px 0px;
+        border-radius: 0px;
+        transition: 0.3s all ease;
+        i{
+            font-size: 1rem;
+            line-height: 1;
+            color: $color-dark-grey;
+            @include paddingController(0px, 3px, 0px, 0px);
+        }
+        img{
+            width: 20px;
+        }
+        &:hover{
+            border-color: $color-transparent;
+            background: $color-transparent;
+            color: $color-dark-grey;
+        }
+    }
+    button.filter-active{
+        border: 1px solid $color-light-grey;
+        background: $color-light-grey;
+    }
+}

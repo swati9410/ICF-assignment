@@ -1,0 +1,25 @@
+/* Common Styling Start */
+*{
+    padding: 0;
+    margin: 0 auto;
+    font-family: 'Roboto', sans-serif;
+}
+:root {
+    font-size: 16px;
+}
+body{
+    background-color: #f4f4f8;
+}
+button.btn.btn-primary{
+    &:hover,&:focus,&:visited{
+        outline: none;
+        box-shadow: none;
+    }
+}
+.section-padding{
+    @include paddingController(20px, 0px, 20px, 0px);
+}
+.add-opacity{
+    opacity: 0.3;
+}
+/* Common Styling End */
