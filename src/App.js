@@ -8,12 +8,11 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      allFlightData: [],
-      flightDetail: [],
-      sortDirection: "asc",
-      departureTimeArray: [],
-      deptMinTime: "",
-      deptMaxTime: ""    
+        allFlightData: [],
+        flightDetail: [],
+        sortDirection: "asc",
+        departureTimeArray: [],
+        filterRangeArr: []
     };
   }
   componentDidMount(){
@@ -40,28 +39,64 @@ export default class App extends Component {
       sortDirection: direction
     })
   } 
-  filterItems(minTime,maxTime){
+
+  getFilterData(){
     let departureArr = [];
     this.state.allFlightData.map((value,key) => {
       let deptDate = new Date(value.standardTimeOfDeparture);
       let deptDateValue = deptDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      if(this.isBigEnough(deptDateValue, minTime, maxTime)){
+      if(this.isBigEnough(deptDateValue)){
         departureArr.push(this.state.allFlightData[key]);
       }
       return ({})
     })
     this.setState({
-      flightDetail: departureArr
+      flightDetail: departureArr,
     })
   }
 
-  isBigEnough(value, minTime, maxTime) {
-    return value >= minTime && value < maxTime;
+  filterItems(e,minTime,maxTime){
+    let classVal = e.target.classList;
+    
+    if(classVal.contains("btn-success")){
+      var index = this.state.filterRangeArr.indexOf(minTime+"-"+ maxTime);
+      if (index > -1) {
+        this.state.filterRangeArr.splice(index, 1);
+      }
+      console.log(this.state.filterRangeArr);
+      e.target.classList.remove('btn-success');
+      e.target.classList.add('btn-primary');
+      if(!this.state.filterRangeArr.length){
+        this.setState({
+          flightDetail: this.state.allFlightData,
+        })
+      }
+      else{
+        this.getFilterData();
+      }
+    }
+    else{
+      this.state.filterRangeArr.push(minTime+"-"+ maxTime);
+      e.target.classList.add('btn-success');
+      e.target.classList.remove('btn-primary');
+      this.getFilterData();
+    }
+  }
+
+  isBigEnough(deptTime) {
+    var isExist = false;
+    this.state.filterRangeArr.map((value,key) => {
+      var minMaxArr = value.split("-");
+      if(deptTime >= minMaxArr[0] && deptTime < minMaxArr[1]){
+        isExist =  true;
+      }
+      return ({})
+    })
+    return isExist;
   }
   
   render(){
   const { flightDetail, sortDirection, allFlightData} = this.state;
-  console.log('Flight Detail', allFlightData);
   const THEAD_LIST=['Flight No.','Departure Time','Arrival Time','Duration'];
   let getCompleteFlightDetail = [];
   if(flightDetail.length !== 0) {
@@ -104,10 +139,13 @@ export default class App extends Component {
         </span>
       </div>
       <div className="">
-        <Button variant="primary" onClick={() => this.filterItems("00:00", "06:00")}>00-06</Button>
-        <Button variant="primary" onClick={() => this.filterItems("06:00", "12:00")}>06-12</Button>
-        <Button variant="primary" onClick={() => this.filterItems("12:00", "18:00")}>12-18</Button>
-        <Button variant="primary" onClick={() => this.filterItems("18:00", "24:00")}>18-00</Button>
+        <Button variant="primary" onClick={(e) => this.filterItems(e,"00:00", "06:00")}>
+            <i className="fa fa-moon-o" aria-hidden="true"></i>
+            00-06
+        </Button>
+        <Button variant="primary" onClick={(e) => this.filterItems(e,"06:00", "12:00")}>06-12</Button>
+        <Button variant="primary" onClick={(e) => this.filterItems(e,"12:00", "18:00")}>12-18</Button>
+        <Button variant="primary" onClick={(e) => this.filterItems(e,"18:00", "24:00")}>18-24</Button>
       </div>
         
       <Button variant="primary" onClick={e => this.onSort(e, 'travelTime', sortDirection)}>Sort by Duration</Button>
